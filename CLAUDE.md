@@ -21,9 +21,11 @@ One-page, booking-first site for Bosco Dance Company (founder **Bosco David**, H
 - Before a push, check that every file referenced from HTML, CSS and JS exists, that nothing in `site/media` is unused, and that there are no console errors at desktop, 375×812 and 812×375.
 
 ## Page
-- Section order: hero → our work (video cards) → meet Bosco + stats + dancers → Bosco's vision → some of our best work (showcase coverflow) → recognition → event teams we work with (names only, no logos) → services → how it works → FAQ → final CTA → contact.
+- Section order: hero → our work (video cards) → meet Bosco + stats + dancers → Bosco’s vision → some of our best work (showcase coverflow) → recognition (award cards + "On stage at the awards" photo row) → event teams we work with (name marquee; logos later) → services → how it works → FAQ → final CTA → contact.
 - Light theme is the default (no automatic switch to dark from the system preference); dark is a toggle.
-- Enquiries go only to WhatsApp via `wa.me` with a prefilled message. No backend.
+- Enquiries go only to WhatsApp via `wa.me` with a prefilled message. No backend. Both forms (the full "Plan your event" sheet and the 15-second popup) go through `openWhatsApp()` and `buildMessage()` in main.js.
+- The popup must stay polite: once per visit at most, never over another dialog, 3-day rest after "Not now" (`localStorage bdc-quick` = timestamp), never again after an enquiry is sent (`bdc-quick` = "sent"). Don't autofocus its inputs (phones would pop the keyboard).
+- Award facts come only from what the photos and certificates show (raw/awards/). Don't add categories that aren't readable on them.
 
 ## Rules learned the hard way
 - Mobile (check 375×812 portrait and 812×375 landscape): every tap target ≥ 44px (small text links get an invisible `::after` hit area); no horizontal overflow; the film player shows a "turn your phone" hint for landscape videos in portrait and switches to a side caption column when the phone is sideways. On touch devices the enquiry form opens WhatsApp with `location.href` (works in Instagram's in-app browser); on desktop it opens one new tab. Re-check both orientations after any change to the film player or form.

@@ -536,6 +536,8 @@
   const E = D.enquiry;
   const S = { step: 1, sent: false, inspired: null, question: null, source: "" };
   const DRAFT = "bdc-enquiry";
+  const QKEY = "bdc-quick"; // localStorage: "sent", or when the popup was last dismissed
+  const Q = { shown: false, sent: false, left: E.quick.delay };
 
   $("[data-looking-groups]").innerHTML = E.looking.map((g) => `
     <div class="look-group"><p class="look-group__title">${esc(g.group)}</p><div class="chips">
@@ -613,7 +615,8 @@
       days: +$('[data-stepper="days"] output').textContent, city: v("city"), venue: v("venue"), guests: v("guests"),
       name: v("name"), eventName: v("eventName"), perfCount: +$('[data-stepper="perfCount"] output').textContent,
       schedule: v("schedule"), specialEntries: v("specialEntries"), theme: v("theme"), decorNotes: v("decorNotes"),
-      lighting: v("lighting"), refLink: v("refLink"), willShareMedia: fd.get("willShareMedia") === "on", notes: v("notes")
+      lighting: v("lighting"), refLink: v("refLink"), willShareMedia: fd.get("willShareMedia") === "on", notes: v("notes"),
+      inspired: S.inspired, question: S.question
     };
   }
   function saveDraft() { if (!S.sent) safe(() => sessionStorage.setItem(DRAFT, JSON.stringify({ ...readForm(), inspired: S.inspired, question: S.question }))); }
@@ -630,14 +633,17 @@
   }
 
   const cut = (s, n = 300) => (s.length > n ? s.slice(0, n - 1) + "…" : s);
-  function buildMessage(d) {
+  const BLANK = { looking: [], eventType: "", date: "", tbd: false, days: 1, city: "", venue: "", guests: "", name: "", eventName: "", perfCount: 0,
+    schedule: "", specialEntries: "", theme: "", decorNotes: "", lighting: "", refLink: "", willShareMedia: false, notes: "", inspired: null, question: null };
+  function buildMessage(partial) {
+    const d = { ...BLANK, ...partial };
     const b = (label, val) => (val ? `*${label}:* ${val}` : null);
     const dateText = d.tbd ? "Not fixed yet" : d.date ? new Date(d.date + "T00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
     const lines = [
       E.greeting, "",
       b("Looking for", d.looking.join(", ")),
-      b("Inspired by", S.inspired && S.inspired.title),
-      b("Question about", S.question), "",
+      b("Inspired by", d.inspired && d.inspired.title),
+      b("Question about", d.question), "",
       b("Event", [d.eventName, d.eventType && (d.eventName ? `(${d.eventType})` : d.eventType)].filter(Boolean).join(" ")),
       b("Date", [dateText, dateText && d.days > 1 ? `${d.days} days` : ""].filter(Boolean).join(" · ")),
       b("City / venue", [d.city, d.venue].filter(Boolean).join(", ")),
@@ -654,16 +660,20 @@
     return lines.filter((l) => l !== null).join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    const d = readForm();
+  function openWhatsApp(d, source) {
     const url = `https://wa.me/${D.config.whatsapp}?text=${encodeURIComponent(buildMessage(d))}`;
-    $("[data-wa-fallback]").href = url;
     // Phones (incl. Instagram's in-app browser) block or mishandle new tabs; going straight to the
     // wa.me link hands off to the WhatsApp app reliably. Desktops open WhatsApp Web in a new tab.
     if (!finePointer.matches) location.href = url; // same tap = user gesture, so iOS opens the WhatsApp app
     else { const tab = window.open(url, "_blank"); if (tab) tab.opener = null; else location.href = url; }
-    if (typeof window.gtag === "function") window.gtag("event", "whatsapp_enquiry", { looking_for: d.looking.join("|"), inspired_by: S.inspired ? S.inspired.title : "", event_type: d.eventType, source_section: S.source });
+    if (typeof window.gtag === "function") window.gtag("event", "whatsapp_enquiry", { looking_for: (d.looking || []).join("|"), inspired_by: d.inspired ? d.inspired.title : "", event_type: d.eventType || "", source_section: source });
+    safe(() => localStorage.setItem(QKEY, "sent")); // they've enquired, so the popup never needs to ask again
+    return url;
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    $("[data-wa-fallback]").href = openWhatsApp(readForm(), S.source);
     S.sent = true; safe(() => sessionStorage.removeItem(DRAFT));
     stepsEls.forEach((f) => (f.hidden = true));
     $("[data-inspired]").hidden = true;
@@ -680,6 +690,7 @@
   }
 
   function openSheet({ looking: pre = [], inspired = null, question = null, source = "" } = {}) {
+    Q.shown = true;
     if (S.sent) resetForm();
     applyDraft(safe(() => JSON.parse(sessionStorage.getItem(DRAFT) || "null")));
     if (pre.length) $$('input[name="looking"]', form).forEach((i) => { if (pre.includes(i.value)) i.checked = true; });
@@ -710,6 +721,61 @@
     if (dy > 90) sheet.close();
   });
 
+  /* ---------------------------------------------------------- Quick enquiry popup (once, after 15 s on the page) */
+  const quick = $("[data-quick]"), qForm = $("[data-quick-form]");
+  $("[data-quick-looking]").innerHTML = E.quick.looking.map((x) =>
+    `<label class="chip"><input type="checkbox" name="qLooking" value="${esc(x.value)}" /><span>${esc(x.label)}</span></label>`).join("");
+  $("[data-quick-date]").min = dateInput.min;
+  const quickBlocked = () => {
+    const v = safe(() => localStorage.getItem(QKEY));
+    return v === "sent" || (!!v && Date.now() - +v < E.quick.snoozeDays * 864e5);
+  };
+  // the 15 s only count while the page is in front and nothing else (film, form) is open
+  let qTimer = 0, qStart = 0;
+  const qPause = () => { if (!qTimer) return; clearTimeout(qTimer); qTimer = 0; Q.left = Math.max(0, Q.left - (Date.now() - qStart)); };
+  const qArm = () => {
+    if (Q.shown || qTimer || quickBlocked() || ui.dialogs > 0 || document.visibilityState !== "visible") return;
+    qStart = Date.now(); qTimer = setTimeout(() => { qTimer = 0; openQuick(); }, Q.left);
+  };
+  document.addEventListener("visibilitychange", () => (document.visibilityState === "visible" ? qArm() : qPause()));
+  document.addEventListener("bdc:dialogs", (e) => { if (e.detail > 0) qPause(); else { Q.left = Math.max(Q.left, 4000); qArm(); } });
+  qArm();
+
+  function openQuick() {
+    if (Q.shown || quickBlocked() || ui.dialogs > 0) return;
+    Q.shown = true;
+    quick.showModal(); lock(true);
+    $("#quick-title").focus({ preventScroll: true });
+  }
+  const qData = () => {
+    const fd = new FormData(qForm), v = (k) => (fd.get(k) || "").toString().trim();
+    return { looking: fd.getAll("qLooking"), date: v("qDate"), city: v("qCity"), name: v("qName") };
+  };
+  qForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    Q.sent = true;
+    $("[data-quick-fallback]").href = openWhatsApp(qData(), "popup");
+    $("[data-quick-body]").hidden = $("[data-quick-foot]").hidden = true;
+    $("[data-quick-done]").hidden = $("[data-quick-done-foot]").hidden = false;
+    $("[data-quick-done-foot] button").focus();
+  });
+  // "Add more details": carry what they picked into the full form
+  $("[data-quick-more]").addEventListener("click", () => {
+    const d = qData();
+    quick.close();
+    openSheet({ looking: d.looking, source: "popup" });
+    if (d.name) form.elements.name.value = d.name;
+    if (d.city) cityInput.value = d.city;
+    if (d.date) dateInput.value = d.date;
+    saveDraft();
+  });
+  $$("[data-quick-close]").forEach((b) => b.addEventListener("click", () => quick.close()));
+  quick.addEventListener("click", (e) => { if (e.target === quick) quick.close(); });
+  quick.addEventListener("close", () => {
+    lock(false);
+    if (!Q.sent) safe(() => localStorage.setItem(QKEY, String(Date.now()))); // "not now": rest for a few days
+  });
+
   document.addEventListener("click", (e) => {
     const t = e.target.closest("[data-enquire]"); if (!t) return;
     e.preventDefault();
@@ -722,6 +788,25 @@
     });
   });
 
+
+  /* ---------------------------------------------------------- Award nights: swipeable photo row */
+  const nights = $("[data-nights]");
+  if (nights) {
+    const prev = $("[data-nights-prev]"), next = $("[data-nights-next]");
+    const go = (dir) => nights.scrollBy({ left: dir * Math.max(260, nights.clientWidth * 0.8), behavior: reduced.matches ? "auto" : "smooth" });
+    const paintNights = () => {
+      prev.disabled = nights.scrollLeft < 8;
+      next.disabled = nights.scrollLeft + nights.clientWidth > nights.scrollWidth - 8;
+      // soft fade on whichever side has more photos
+      nights.style.setProperty("--fl", prev.disabled ? "0px" : "48px");
+      nights.style.setProperty("--fr", next.disabled ? "0px" : "72px");
+    };
+    prev.addEventListener("click", () => go(-1));
+    next.addEventListener("click", () => go(1));
+    nights.addEventListener("scroll", paintNights, { passive: true });
+    addEventListener("resize", paintNights, { passive: true });
+    paintNights();
+  }
 
   /* ---------------------------------------------------------- Some of our best work: coverflow carousel */
   const scEl = $("[data-showcase]");

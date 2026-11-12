@@ -55,10 +55,14 @@ Good to know:
   python3 -I tools/build_media.py --src . --only bosco      # raw/boscocheorgraphy…mp4 → "Bosco at work" card
   python3 -I tools/build_media.py --src . --only process    # "How it works" step loops
   python3 -I tools/build_media.py --src . --only logo       # Logo.png → logos, favicons, share image
+  python3 -I tools/build_media.py --src . --only awards     # raw/awards/*.jpeg → "On stage at the awards" photo row
   ```
 
   The video cards and showreel were built from the original Drive downloads (`--src <folder>`; the layout is described at the top of the script). They don't need rebuilding unless a video changes.
 - **Adding a video card:** add it to `CARDS` in `tools/build_media.py` and to `works` in `site/js/data.js`.
+- **Adding an award photo:** drop it in `raw/awards/`, add it to `AWARD_PHOTOS` in the build script, run `--only awards`, then add a `<li>` to the "On stage at the awards" row in `site/index.html`.
+- **Enquiry popup:** a short form (what, date, city, name) opens once after 15 seconds on the page and sends a prefilled WhatsApp message. It waits while a video or the full form is open, rests for 3 days after "Not now", and never comes back once someone has sent an enquiry. The timing and options are in `enquiry.quick` in `site/js/data.js`.
+- **Floating buttons:** Instagram (@bosco_daboo) sits above the WhatsApp button on desktop and next to "Plan my event" in the phone bar.
 - **Link preview:** the WhatsApp/social preview image is `site/media/brand/company/og-image.jpg` (1200×630). WhatsApp caches previews hard, so if you change the image, give it a new file name and update the `og:image` and `twitter:image` tags.
 
 ## Notes on the media

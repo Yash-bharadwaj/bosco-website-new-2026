@@ -151,6 +151,19 @@ window.BDC = {
     guests: ["Under 200", "200–500", "500–1,000", "1,000+"],
     lighting: ["Warm & royal", "Colourful party", "Dramatic stage", "Not sure"],
     greeting: "Hi Bosco Dance Company! I'd like to enquire about a performance.",
-    signature: "(Sent from boscodancecompany.com)"
+    signature: "(Sent from boscodancecompany.com)",
+    /* Short popup that opens once after 15 s of viewing. value = option name in the full form above */
+    quick: {
+      delay: 15000,
+      snoozeDays: 3, // after "Not now", wait this long before showing it again
+      looking: [
+        { label: "Wedding entry", value: "Couple / Varmala entry" },
+        { label: "Sangeet", value: "Sangeet performance" },
+        { label: "Reception", value: "Reception act" },
+        { label: "Corporate show", value: "Corporate show" },
+        { label: "Theme act", value: "Theme act / Special entry" },
+        { label: "Something else", value: "Something else" }
+      ]
+    }
   }
 };

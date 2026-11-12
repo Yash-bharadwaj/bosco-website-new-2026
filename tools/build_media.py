@@ -424,14 +424,48 @@ def build_showcase():
     return bool(media)
 
 
+# "Award nights" photo row in the Recognition section, newest first (order matches site/index.html).
+# file: name in raw/awards/ · crop: ffmpeg crop to drop phone-screenshot bars and carousel arrows (None = keep all)
+AWARD_PHOTOS = [
+    ("eema-spotlight-2025", "eema-spotlight-2025.jpeg", "crop=591:739:0:190"),  # phone screenshot: drop black bars
+    ("tcei-2025-stage", "tcei-2025-stage.jpeg", None),
+    ("tcei-2025-team", "tcei-2025-team.jpeg", None),
+    ("siwpc-2024", "siwpc-2024.jpeg", "crop=870:672:50:28"),  # drop the page band and carousel arrows
+    ("siwpc-2024-close", "siwpc-2024-close.jpeg", "crop=876:616:70:0"),  # drop carousel arrows
+    ("tcei-2024-bosco", "tcei-2024-bosco.jpeg", None),
+    ("tcei-2023", "tcei-2023.jpeg", None),
+    ("taa-virtuoso-2022-23", "taa-virtuoso-2022-23.jpeg", None),
+]
+
+
+def build_awards():
+    """raw/awards/*.jpeg → site/media/brand/awards/<slug>.webp, 680 px tall (2× the on-screen height), never upscaled."""
+    folder, out = ROOT / "raw" / "awards", OUT / "brand" / "awards"
+    out.mkdir(parents=True, exist_ok=True)
+    for slug, name, crop in AWARD_PHOTOS:
+        src = folder / name
+        if not src.exists():
+            print(f"awards: {name} not found in {folder.relative_to(ROOT)}/")
+            continue
+        tmp = out / f"_{slug}.png"
+        vf = ",".join(x for x in [crop, "scale=-2:'min(680,ih)':flags=lanczos"] if x)
+        run(["-i", str(src), "-frames:v", "1", "-vf", vf, str(tmp)])
+        webp(tmp, out / f"{slug}.webp", 80)
+        tmp.unlink(missing_ok=True)
+        w, h, _ = probe(out / f"{slug}.webp")
+        print(f"awards: {slug}.webp {w}×{h} · {round((out / f'{slug}.webp').stat().st_size / 1e3)} KB")
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--src", required=True, type=Path)
-    ap.add_argument("--only", default="", help="comma-separated card slugs, or 'logo' / 'bosco' / 'vision' / 'showcase' / 'process'")
+    ap.add_argument("--only", default="", help="comma-separated card slugs, or 'logo' / 'bosco' / 'vision' / 'showcase' / 'process' / 'awards'")
     ap.add_argument("--force", action="store_true")
     a = ap.parse_args()
     only = set(filter(None, a.only.split(",")))
-    if only & {"logo", "bosco", "vision", "showcase", "process"}:
+    if only & {"logo", "bosco", "vision", "showcase", "process", "awards"}:
+        if "awards" in only:
+            build_awards()
         if "logo" in only:
             print("logo:", build_logo())
         if "bosco" in only:
