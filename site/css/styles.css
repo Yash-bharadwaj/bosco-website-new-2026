@@ -778,20 +778,10 @@ button, a, label, summary { -webkit-tap-highlight-color: transparent; touch-acti
   .menu__links { margin-top: 0; }
 }
 
-/* ---------- Partners (event companies we work with) ---------- */
-.partners { padding-bottom: clamp(56px, 8vw, 110px); }
-.partners__grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: clamp(12px, 1.4vw, 18px); }
-.partner { position: relative; overflow: hidden; display: grid; place-items: center; align-content: center; gap: 12px; min-height: clamp(130px, 13vw, 168px); padding: 22px 18px; text-align: center; border-radius: 22px; background: var(--surface); border: 1px solid var(--line); box-shadow: var(--shadow); transition: transform .5s var(--ease-out), border-color .4s, box-shadow .5s var(--ease-out); }
-.partner::before { content: ""; position: absolute; top: 0; right: 0; width: 56px; height: 56px; background: radial-gradient(circle at 100% 0, color-mix(in srgb, var(--gold-accent) 22%, transparent), transparent 70%); opacity: .7; transition: opacity .4s; }
-.partner__head { display: grid; place-items: center; min-height: 58px; width: 100%; }
-.partner__name { font: 400 clamp(1.35rem, 2vw, 1.75rem)/1.05 var(--font-display); color: var(--text); letter-spacing: -.01em; text-wrap: balance; }
-.partner__role { font: 600 10.5px/1 var(--font-sans); letter-spacing: .16em; text-transform: uppercase; color: var(--gold); }
-@media (hover: hover) {
-  .partner:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--gold-accent) 50%, transparent); box-shadow: var(--shadow-lg); }
-  .partner:hover::before { opacity: 1; }
-}
-@media (max-width: 759px) {
-  .partners__grid { grid-template-columns: repeat(2, 1fr); }
-  .partner { min-height: 118px; padding: 18px 12px; border-radius: 18px; }
-  .partner__name { font-size: 1.25rem; }
-}
+/* ---------- Partners: a slim marquee of names (logos can join later) ---------- */
+.partners { padding-block: clamp(36px, 5vw, 64px) clamp(16px, 3vw, 40px); }
+.partners__title { text-align: center; margin: 0 0 clamp(18px, 2.4vw, 28px); }
+.marquee--names { border-block: 1px solid var(--line); }
+.marquee--names .marquee__track { --dur: 80s; }
+.marquee--names li { flex: none; display: flex; align-items: center; gap: clamp(26px, 4vw, 52px); padding: clamp(18px, 2.4vw, 26px) clamp(26px, 4vw, 52px) clamp(18px, 2.4vw, 26px) 0; font: 400 clamp(1.6rem, 3.2vw, 2.6rem)/1 var(--font-display); letter-spacing: -.01em; color: var(--text); white-space: nowrap; }
+.marquee--names li::after { content: ""; flex: none; width: 7px; height: 7px; transform: rotate(45deg); background: var(--gold-accent); opacity: .85; }

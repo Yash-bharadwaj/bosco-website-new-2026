@@ -40,16 +40,16 @@ window.BDC = {
       credits: "Decor & planning: SKG Events · Video: Social Lens", book: "Couple / Varmala entry" }
   ],
 
-  /* "The event teams we work with" */
+  /* "Event teams we work with" marquee. slug = future logo file name */
   partners: [
-    { slug: "ramoji-film-city", name: "Ramoji Film City", role: "Venue" },
-    { slug: "ishte-events", name: "Ishte Events", role: "Decor & events" },
-    { slug: "pink-pagdi", name: "Pink Pagdi", role: "Decor" },
-    { slug: "the-show", name: "The Show", role: "Events" },
-    { slug: "skg-events", name: "SKG Events", role: "Decor & planning" },
-    { slug: "swastik-events", name: "Swastik Events", role: "Event planning" },
-    { slug: "swastik-decor", name: "Swastik Decor", role: "Decor" },
-    { slug: "varshini-creations", name: "Varshini Creations", role: "Events" }
+    { slug: "ramoji-film-city", name: "Ramoji Film City" },
+    { slug: "ishte-events", name: "Ishte Events" },
+    { slug: "pink-pagdi", name: "Pink Pagdi" },
+    { slug: "the-show", name: "The Show" },
+    { slug: "skg-events", name: "SKG Events" },
+    { slug: "swastik-events", name: "Swastik Events" },
+    { slug: "swastik-decor", name: "Swastik Decor" },
+    { slug: "varshini-creations", name: "Varshini Creations" }
   ],
 
   /* Picking a filter in "Our work" pre-selects these in the enquiry form */

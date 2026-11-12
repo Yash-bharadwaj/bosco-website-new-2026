@@ -132,6 +132,10 @@
   /* ---------------------------------------------------------- Marquees */
   const troupeTrack = $("[data-troupe]");
   troupeTrack.innerHTML = D.troupe.map((p) => `<li style="--ar:${p.ar}"><img src="${M(p.src)}" alt="Bosco Dance Company dancers" loading="lazy" decoding="async" /></li>`).join("");
+  // partner names: listed twice so one copy is always wider than the screen, then doubled below for the loop
+  const partnersTrack = $("[data-partners]");
+  partnersTrack.innerHTML = [...D.partners, ...D.partners].map((p, i) =>
+    `<li${i >= D.partners.length ? ' aria-hidden="true"' : ""}>${esc(p.name)}</li>`).join("");
   $$(".marquee__track").forEach((track) => {
     [...track.children].forEach((li) => { const c = li.cloneNode(true); c.setAttribute("aria-hidden", "true"); $$("img", c).forEach((i) => (i.alt = "")); track.appendChild(c); });
   });
@@ -718,15 +722,6 @@
     });
   });
 
-  /* ---------------------------------------------------------- Partners: name + what we do with them */
-  const partnersEl = $("[data-partners]");
-  if (partnersEl && D.partners) {
-    partnersEl.innerHTML = D.partners.map((p, i) => `
-      <li class="partner reveal" style="--d:${(i % 4 * 0.06).toFixed(2)}s">
-        <span class="partner__head"><span class="partner__name">${esc(p.name)}</span></span>
-        <span class="partner__role">${esc(p.role)}</span>
-      </li>`).join("");
-  }
 
   /* ---------------------------------------------------------- Some of our best work: coverflow carousel */
   const scEl = $("[data-showcase]");
