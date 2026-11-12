@@ -30,6 +30,9 @@ One-page, booking-first site for Bosco Dance Company (founder **Bosco David**, H
 ## Rules learned the hard way
 - Mobile (check 375×812 portrait and 812×375 landscape): every tap target ≥ 44px (small text links get an invisible `::after` hit area); no horizontal overflow; the film player shows a "turn your phone" hint for landscape videos in portrait and switches to a side caption column when the phone is sideways. On touch devices the enquiry form opens WhatsApp with `location.href` (works in Instagram's in-app browser); on desktop it opens one new tab. Re-check both orientations after any change to the film player or form.
 - Watermarks use the `.wm` class. Never let a broad `img { width:100% }` rule reach a `.wm`; scope media rules with `>` or a class. Videos that already carry the BOSCO logo (the showcase reels) set `wm: false`.
+- The full-screen player borrows the inline `<video>` that's already playing (showcase slide, Bosco's vision) with `lend()` and returns it with `giveBack()` on close, so it never downloads the file twice. Any code that plays or pauses inline videos must skip a lent one (`isLent(v)`) and cope with a slide whose video is missing while it's lent.
+- The loading facts (`D.facts`) may only use facts already on the site. No em dashes.
+- Cloudflare Pages doesn't serve byte ranges (206). Moving `site/media` to R2 and setting `config.mediaBase` is the fix for slow mobile video starts.
 - Videos ship as AV1 (picked when `canPlayType` says "probably") with an H.264 fallback, both `+faststart`, with short fades at the loop point.
 - Drive's anonymous download quota runs out easily: download each raw file once and process it locally.
 - Don't download videos from YouTube or Instagram. Ask the owner for the file.

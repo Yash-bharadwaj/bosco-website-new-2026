@@ -40,6 +40,26 @@ window.BDC = {
       credits: "Decor & planning: SKG Events · Video: Social Lens", book: "Couple / Varmala entry" }
   ],
 
+  /* Shown one at a time while a full-screen video loads. Keep them short, true and in plain words. */
+  facts: [
+    "Bosco David started Bosco Dance Company in Hyderabad in 2006.",
+    "2026 is the company’s 20th year.",
+    "The team has done more than 3,000 shows, from family weddings to big corporate stages.",
+    "Bosco is a choreographer from Mumbai who built his company in Hyderabad.",
+    "Bosco is part of every show. He works out the idea and the music with you.",
+    "Every act is rehearsed with the dancers until it’s ready for the stage.",
+    "Bosco pays for medical insurance for all of his core dancers.",
+    "He also started the BDC Foundation to support dancers across India.",
+    "Bosco won Gold for Best Dance Choreographer at the EEMA Spotlight Awards 2025.",
+    "At SIWPC Global 2024, the team won Silver for Best Wedding Choreography.",
+    "In 2024, TCEI gave the team its Best Dance Troupe award for corporate events.",
+    "The team travels across India for weddings and events.",
+    "Want the family on stage too? The choreographers rehearse with you until everyone feels ready.",
+    "Wedding season runs from November to February, and those dates go fast.",
+    "Props, stage setup, lighting, VJ and music editing can all come from the same team.",
+    "You’ll find the team in Banjara Hills, Hyderabad, just behind Taj Krishna."
+  ],
+
   /* "Event teams we work with" marquee. slug = future logo file name */
   partners: [
     { slug: "ramoji-film-city", name: "Ramoji Film City" },

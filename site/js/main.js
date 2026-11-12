@@ -274,10 +274,68 @@
   /* ---------------------------------------------------------- Film player */
   const film = $("[data-film]");
   const filmFrame = $("[data-film-frame]");
-  const F = { i: 0, list: [], from: null };
+  const F = { i: 0, list: [], from: null, lent: null, ac: null };
   const wmHTML = () => `<img class="wm" src="${M(D.brand.watermark)}" alt="" aria-hidden="true" />`;
+
+  // A clip that's already playing on the page (showcase, Bosco's vision) moves into the player as it is.
+  // It keeps everything it has downloaded, so full screen starts straight away instead of fetching the file again.
+  const isLent = (v) => !!(F.lent && F.lent.v === v);
+  function lend(v) {
+    F.lent = { v, parent: v.parentNode, next: v.nextSibling, muted: v.muted };
+    lazySrc(v);
+    v.pause(); v.loop = false; v.controls = true;
+    v.muted = false; v.defaultMuted = false; v.removeAttribute("muted");
+    try { v.currentTime = 0; } catch (e) { /* not seekable yet */ }
+    filmFrame.replaceChildren(v);
+  }
+  function giveBack() {
+    const l = F.lent; if (!l) return;
+    F.lent = null;
+    const v = l.v;
+    v.pause(); v.controls = false; v.loop = true; v.muted = l.muted;
+    if (l.muted) v.setAttribute("muted", "");
+    l.parent.insertBefore(v, l.next && l.next.parentNode === l.parent ? l.next : null);
+  }
+
+  /* While a full-screen video loads: short facts about BDC, one at a time. Tap for the next one. */
+  const loader = $("[data-film-loader]"), factEl = $("[data-fact]"), factBar = $("[data-fact-bar]"), filmStatus = $("[data-film-status]");
+  const FACTS = D.facts || [];
+  const L = { i: Math.floor(Math.random() * Math.max(1, FACTS.length)), on: false, timer: 0, wait: 0 };
+  const FACT_MS = 5200;
+  function nextFact() {
+    if (!FACTS.length) return;
+    L.i = (L.i + 1) % FACTS.length;
+    factEl.textContent = FACTS[L.i];
+    [factEl, factBar].forEach((el) => { el.style.animation = "none"; void el.offsetWidth; el.style.animation = ""; });
+    factBar.style.animationDuration = FACT_MS + "ms";
+    clearTimeout(L.timer); L.timer = setTimeout(nextFact, FACT_MS);
+  }
+  function loading(on, status) {
+    clearTimeout(L.wait);
+    if (status) filmStatus.textContent = status;
+    if (!on) { L.on = false; clearTimeout(L.timer); loader.classList.remove("is-on"); return; }
+    if (L.on) return;
+    // a short grace period, so a clip that's already buffered never flashes the card
+    L.wait = setTimeout(() => { L.on = true; loader.classList.add("is-on"); nextFact(); }, 350);
+  }
+  $("[data-fact-next]").addEventListener("click", nextFact);
+  function watchVideo(v) {
+    const o = { signal: F.ac.signal };
+    const pct = () => {
+      if (!v.duration || !isFinite(v.duration) || !v.buffered.length) return "";
+      return ` · ${Math.min(99, Math.round((v.buffered.end(v.buffered.length - 1) / v.duration) * 100))}%`;
+    };
+    v.addEventListener("waiting", () => loading(true, "Loading the video" + pct()), o);
+    v.addEventListener("progress", () => { if (L.on) filmStatus.textContent = "Loading the video" + pct(); }, o);
+    ["playing", "canplay", "error"].forEach((t) => v.addEventListener(t, () => loading(false), o));
+    if (v.readyState >= 3) loading(false); else loading(true, "Loading the video");
+  }
+
   function paintFilm() {
     const w = F.list[F.i]; if (!w) return;
+    if (F.ac) F.ac.abort();
+    F.ac = new AbortController();
+    giveBack();
     $$("[data-film-prev],[data-film-next]").forEach((b) => (b.hidden = F.list.length < 2));
     $("[data-film-eyebrow]").textContent = w.eyebrow + (w.credit ? " · " + w.credit : "");
     $("[data-film-title]").textContent = w.title;
@@ -288,11 +346,17 @@
     film.classList.toggle("is-wide-film", ar >= 1); // phones in portrait get a "turn your phone" hint
     filmFrame.style.animation = "none"; void filmFrame.offsetWidth; filmFrame.style.animation = "";
     if (w.film.type === "mp4") {
-      filmFrame.innerHTML = `<video controls autoplay playsinline preload="auto" src="${M(w.film.src)}" poster="${M(w.poster)}"></video>`;
+      const inline = w.film.el;
+      if (inline && inline.isConnected && !isLent(inline)) lend(inline);
+      else filmFrame.innerHTML = `<video controls autoplay playsinline preload="auto" src="${M(w.film.src)}" poster="${M(w.poster)}"></video>`;
+      const v = $("video", filmFrame);
+      watchVideo(v);
       // start it inside the tap itself, so phones allow playback with sound
-      play($("video", filmFrame));
+      play(v);
     } else { // "drive": Google Drive preview player
       filmFrame.innerHTML = `<iframe src="https://drive.google.com/file/d/${esc(w.film.id)}/preview" title="${esc(w.title)}" allow="autoplay; fullscreen"></iframe>`;
+      loading(true, "Loading the film");
+      $("iframe", filmFrame).addEventListener("load", () => loading(false), { signal: F.ac.signal });
     }
     if (w.wm !== false) filmFrame.insertAdjacentHTML("beforeend", wmHTML()); // skip when the video already carries the logo
   }
@@ -304,6 +368,8 @@
   }
   const closeFilm = () => film.close();
   film.addEventListener("close", () => {
+    if (F.ac) F.ac.abort();
+    loading(false); giveBack();
     filmFrame.innerHTML = ""; lock(false);
     const c = F.from || (F.list === C.list ? $$(".card", track)[F.i] : null);
     if (c) c.focus({ preventScroll: true });
@@ -341,7 +407,7 @@
     return V.av1 && t.canPlayType('video/mp4; codecs="av01.0.04M.08, mp4a.40.2"') === "probably" ? V.av1 : V.src;
   };
   const vSync = () => {
-    if (!VS.video) return;
+    if (!VS.video || isLent(VS.video)) return;
     if (VS.inView && ui.dialogs === 0 && !reduced.matches && document.visibilityState === "visible") play(VS.video);
     else VS.video.pause();
   };
@@ -368,7 +434,7 @@
     });
     $("[data-vision-open]").addEventListener("click", () => openFilm(0, [{
       slug: V.slug, title: V.title, eyebrow: V.eyebrow, poster: V.poster,
-      film: { type: "mp4", src: vSrc(), ar: 16 / 9 }, book: V.book, bookLabel: V.bookLabel
+      film: { type: "mp4", src: vSrc(), ar: 16 / 9, el: VS.video }, book: V.book, bookLabel: V.bookLabel
     }], vFrame));
   }
 
@@ -834,14 +900,15 @@
     const slides = $$(".slide", scTrack);
     const n = slides.length;
     const wrap = (o) => { const h = Math.floor(n / 2); while (o > h) o -= n; while (o < -h) o += n; return o; };
-    const filmItem = (x) => {
+    const filmItem = (x, slide) => {
       const m = scMedia[x.slug];
       return { slug: x.slug, title: x.title, eyebrow: x.place, poster: m.poster, credit: "Video: Social Lens", wm: false,
-               film: { type: "mp4", src: m.av1 && canAV1 ? m.av1 : m.src, ar: 16 / 9 }, book: x.book, bookLabel: "Book something like this" };
+               film: { type: "mp4", src: m.av1 && canAV1 ? m.av1 : m.src, ar: 16 / 9, el: slide && $("video", slide) },
+               book: x.book, bookLabel: "Book something like this" };
     };
     scSync = () => {
       const on = SC.inView && ui.dialogs === 0 && !reduced.matches && document.visibilityState === "visible";
-      slides.forEach((s, k) => { const v = $("video", s); if (k === SC.i && on) { lazySrc(v); play(v); } else v.pause(); });
+      slides.forEach((s, k) => { const v = $("video", s); if (!v) return; if (k === SC.i && on) { lazySrc(v); play(v); } else v.pause(); }); // no video = lent to the player
     };
     const paint = () => {
       slides.forEach((s, k) => {
@@ -874,9 +941,9 @@
     const holdFor = (ms) => { SC.hold = true; clearTimeout(SC.holdTimer); SC.holdTimer = setTimeout(() => (SC.hold = false), ms); };
     slides.forEach((s, k) => s.addEventListener("click", () => {
       if (SC.dragged) return;
-      if (k === SC.i) openFilm(0, [filmItem(scItems[k])], s); else { holdFor(6000); go(k); }
+      if (k === SC.i) openFilm(0, [filmItem(scItems[k], s)], s); else { holdFor(6000); go(k); }
     }));
-    scCap.addEventListener("click", (e) => { if (e.target.closest("[data-showcase-watch]")) openFilm(0, [filmItem(scItems[SC.i])], slides[SC.i]); });
+    scCap.addEventListener("click", (e) => { if (e.target.closest("[data-showcase-watch]")) openFilm(0, [filmItem(scItems[SC.i], slides[SC.i])], slides[SC.i]); });
     $("[data-showcase-prev]").addEventListener("click", () => { holdFor(6000); go(SC.i - 1); });
     $("[data-showcase-next]").addEventListener("click", () => { holdFor(6000); go(SC.i + 1); });
     scEl.addEventListener("keydown", (e) => {

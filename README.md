@@ -42,6 +42,7 @@ Good to know:
 - `site/_headers` caches CSS and JS for a year (their URLs change with every version) and media for a week. HTML is always revalidated, so a new deploy shows up straight away.
 - Unknown URLs get `404.html` with a real 404 status.
 - Every file is under Cloudflare's 25 MB per-file limit.
+- **Videos and range requests:** Cloudflare Pages ignores HTTP range requests (checked 13 Nov 2026: asking for 2 bytes of a video returns the whole file with status 200). Phones, iPhones above all, fetch video in small ranges, so a full-screen video that isn't already playing on the page has to download most of the file before it starts. The real fix is to serve `site/media/` from a Cloudflare R2 bucket on a custom domain such as `media.boscodancecompany.com` (R2 supports ranges), then set `config.mediaBase` in `site/js/data.js` to that URL. Until then the player reuses any clip already playing on the page and shows BDC facts while the rest load.
 
 ## Making changes
 
@@ -62,6 +63,7 @@ Good to know:
 - **Adding a video card:** add it to `CARDS` in `tools/build_media.py` and to `works` in `site/js/data.js`.
 - **Adding an award photo:** drop it in `raw/awards/`, add it to `AWARD_PHOTOS` in the build script, run `--only awards`, then add a `<li>` to the "On stage at the awards" row in `site/index.html`.
 - **Enquiry popup:** a short form (what, date, city, name) opens once after 15 seconds on the page and sends a prefilled WhatsApp message. It waits while a video or the full form is open, rests for 3 days after "Not now", and never comes back once someone has sent an enquiry. The timing and options are in `enquiry.quick` in `site/js/data.js`.
+- **Loading facts:** while a full-screen video loads, a card shows one short fact at a time (tap for the next). The list is `facts` in `site/js/data.js`. Keep them true and plain.
 - **Floating buttons:** Instagram (@bosco_daboo) sits above the WhatsApp button on desktop and next to "Plan my event" in the phone bar.
 - **Link preview:** the WhatsApp/social preview image is `site/media/brand/company/og-image.jpg` (1200×630). WhatsApp caches previews hard, so if you change the image, give it a new file name and update the `og:image` and `twitter:image` tags.
 

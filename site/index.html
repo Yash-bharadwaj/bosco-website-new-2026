@@ -39,7 +39,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="preload" as="image" href="media/brand/showreel/poster.jpg" />
-  <link rel="stylesheet" href="css/styles.css?v=20261113h" />
+  <link rel="stylesheet" href="css/styles.css?v=20261113j" />
 
   <script type="application/ld+json">
   {
@@ -313,46 +313,26 @@
     <!-- ===================== 4 · AWARDS ===================== -->
     <section class="section awards" id="recognition" aria-labelledby="awards-title">
       <div class="container">
-        <header class="section-head section-head--center">
-          <p class="eyebrow reveal">Awards</p>
-          <h2 class="display h2 reveal" id="awards-title">Recognised by the events industry.</h2>
-        </header>
-        <div class="awards__grid">
-          <article class="award award--gold reveal">
-            <svg class="award__laurel"><use href="#i-laurel" /></svg>
-            <p class="award__level">Gold</p>
-            <h3 class="award__title">EEMA Spotlight Awards 2025</h3>
-            <p class="award__cat">Best Dance Choreographer, Entertainment</p>
-            <p class="award__meta">EEMA member since 2023</p>
-          </article>
-          <article class="award award--photo reveal" style="--d:.1s">
-            <img src="media/brand/awards/tcei-2024.jpg" alt="Bosco David with the TCEI Event Excellence Awards 2024 certificate" loading="lazy" decoding="async" />
-            <div class="award__body">
-              <p class="award__level">Gem of India</p>
-              <h3 class="award__title">TCEI Event Excellence Awards 2024</h3>
-              <p class="award__cat">Best Dance Troupe, Corporate Events</p>
-            </div>
-          </article>
-          <article class="award reveal" style="--d:.2s">
-            <svg class="award__laurel"><use href="#i-laurel" /></svg>
-            <p class="award__level">Industry Achiever</p>
-            <h3 class="award__title">ET Industry Achievers 2025–26</h3>
-            <p class="award__cat">Andhra Pradesh &amp; Telangana, by The Times of India</p>
-          </article>
-        </div>
-
-        <div class="nights reveal">
+        <div class="nights">
           <div class="nights__head">
-            <h3 class="nights__title">On stage at the awards</h3>
-            <div class="nights__nav">
-              <button class="round-btn" type="button" data-nights-prev aria-label="Previous photos"><svg><use href="#i-left" /></svg></button>
-              <button class="round-btn" type="button" data-nights-next aria-label="More photos"><svg><use href="#i-right" /></svg></button>
+            <h2 class="display h2 reveal" id="awards-title">On stage at the awards</h2>
+            <div class="nights__nav reveal">
+              <button class="round-btn" type="button" data-nights-prev aria-label="Previous awards"><svg><use href="#i-left" /></svg></button>
+              <button class="round-btn" type="button" data-nights-next aria-label="More awards"><svg><use href="#i-right" /></svg></button>
             </div>
           </div>
-          <ul class="nights__track" data-nights tabindex="0" aria-label="Photos from award nights">
+          <ul class="nights__track reveal" data-nights tabindex="0" aria-label="Awards and award nights">
+            <li><figure>
+              <div class="nights__tile" role="img" aria-label="ET Industry Achievers 2025–26">
+                <svg class="nights__laurel"><use href="#i-laurel" /></svg>
+                <p>Industry Achiever</p>
+                <strong>ET Industry Achievers</strong>
+              </div>
+              <figcaption><span>2025–26</span><strong>ET Industry Achievers</strong><small>Andhra Pradesh &amp; Telangana, by The Times of India</small></figcaption>
+            </figure></li>
             <li><figure>
               <img src="media/brand/awards/eema-spotlight-2025.webp" alt="Bosco David holding the EEMA Spotlight Gold award on stage" width="544" height="680" loading="lazy" decoding="async" />
-              <figcaption><span>2025</span><strong>EEMA Spotlight Awards</strong><small>Gold, Best Dance Choreographer</small></figcaption>
+              <figcaption><span>2025</span><strong>EEMA Spotlight Awards</strong><small>Gold, Best Dance Choreographer (Entertainment). EEMA member since 2023</small></figcaption>
             </figure></li>
             <li><figure>
               <img src="media/brand/awards/tcei-2025-stage.webp" alt="The Bosco Dance Company team on stage at the TCEI Event Excellence Awards 2025" width="1020" height="680" loading="lazy" decoding="async" />
@@ -373,6 +353,10 @@
             <li><figure>
               <img src="media/brand/awards/tcei-2024-bosco.webp" alt="Bosco David with the TCEI 2024 trophy and Gem of India certificate" width="510" height="680" loading="lazy" decoding="async" />
               <figcaption><span>2024</span><strong>TCEI Event Excellence Awards</strong><small>Gem of India, Best Dance Troupe</small></figcaption>
+            </figure></li>
+            <li><figure>
+              <img src="media/brand/awards/tcei-2024.jpg" alt="Bosco David with the TCEI Event Excellence Awards 2024 trophy and certificate" width="1000" height="750" loading="lazy" decoding="async" />
+              <figcaption><span>2024</span><strong>TCEI Event Excellence Awards</strong><small>Best Dance Troupe, Corporate Events</small></figcaption>
             </figure></li>
             <li><figure>
               <img src="media/brand/awards/tcei-2023.webp" alt="Bosco David receiving a certificate at the TCEI Event Excellence Awards 2023" width="1020" height="680" loading="lazy" decoding="async" />
@@ -618,6 +602,20 @@
   <dialog class="film" data-film aria-labelledby="film-title">
     <div class="film__stage">
       <div class="film__frame" data-film-frame></div>
+      <div class="film__loader" data-film-loader>
+        <button class="fact" type="button" data-fact-next aria-label="Show another fact about Bosco Dance Company">
+          <span class="fact__top">
+            <span class="fact__ring" aria-hidden="true"></span>
+            <span class="fact__status" data-film-status role="status">Loading the video</span>
+          </span>
+          <span class="fact__eyebrow">Did you know?</span>
+          <span class="fact__text display" data-fact></span>
+          <span class="fact__foot">
+            <span class="fact__bar" aria-hidden="true"><i data-fact-bar></i></span>
+            <span class="fact__next">Next fact <svg aria-hidden="true"><use href="#i-right" /></svg></span>
+          </span>
+        </button>
+      </div>
     </div>
     <p class="film__hint"><svg aria-hidden="true"><use href="#i-rotate" /></svg>Turn your phone sideways for a bigger view</p>
     <div class="film__bar">
@@ -778,8 +776,8 @@
     </form>
   </dialog>
 
-  <script src="js/data.js?v=20261113h"></script>
-  <script src="js/media.js?v=20261113h"></script>
-  <script src="js/main.js?v=20261113h" defer></script>
+  <script src="js/data.js?v=20261113j"></script>
+  <script src="js/media.js?v=20261113j"></script>
+  <script src="js/main.js?v=20261113j" defer></script>
 </body>
 </html>
