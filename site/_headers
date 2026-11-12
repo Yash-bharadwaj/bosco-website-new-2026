@@ -1,0 +1,17 @@
+# Cloudflare Pages response headers. HTML keeps Pages' default (always revalidated).
+
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+  X-Frame-Options: SAMEORIGIN
+
+# index.html loads these with ?v=<date>, so a new version always gets a new URL.
+/css/*
+  Cache-Control: public, max-age=31536000, immutable
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Videos and photos keep their names when rebuilt, so cache for a week, not forever.
+/media/*
+  Cache-Control: public, max-age=604800

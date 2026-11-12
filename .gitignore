@@ -1,0 +1,13 @@
+# Source videos, photos and planning notes stay on this Mac (too big for git, not part of the site)
+raw/
+
+# Local tooling
+.claude/
+__pycache__/
+*.pyc
+
+# OS / editor clutter
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
